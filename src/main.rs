@@ -15,8 +15,8 @@ struct Cli {
 fn main() {
   let args = Cli::parse();
   if args.search {
-    cli::find_word(args.word);
+    cli::find_word(args.word.replace(" ", "-"));
     return
   }
-  cli::search_word(args.word);
+  cli::search_word(args.word.replace(" ", "-"));
 }
