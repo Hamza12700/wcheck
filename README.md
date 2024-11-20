@@ -24,7 +24,7 @@ git clone https://github.com/hamza12700/wcheck
 
 Use [Cargo](https://doc.rust-lang.org/cargo/) to build and install the binary.
 ```bsah
-cd drash
+cd wheck
 cargo install --path .
 ```
 
@@ -35,4 +35,4 @@ cargo install --path .
 
 ## Bugs
 
-If you discover any bugs please report them [here](https://github.com/Hamza12700/drash/issues/).
+If you discover any bugs please report them [here](https://github.com/Hamza12700/wcheck/issues/).
