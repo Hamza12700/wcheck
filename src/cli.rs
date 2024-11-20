@@ -63,6 +63,14 @@ pub fn search_word(word: String) {
     println!("• {}", desc.trim_ascii());
   }
 
+  println!("\nExamples:");
+  let span_nodes = dom.query_selector("span.eg.deg").unwrap();
+  for span_elm in span_nodes {
+    let span = span_elm.get(dom.parser()).unwrap();
+    let span_tag = span.as_tag().unwrap();
+    println!("• {}", span_tag.inner_text(dom.parser()))
+  }
+
   println!("\nSource: https://dictionary.cambridge.org/dictionary/english/{word}")
 }
 
