@@ -9,10 +9,13 @@ struct Word {
 
 pub fn search_word(word: String) {
   println!("Searching for the word: {}\n", word.to_uppercase());
+  let client = ureq::builder()
+    .redirects(0)
+    .user_agent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
+    .build();
 
-  let res =
-    ureq::get(format!("https://dictionary.cambridge.org/dictionary/english/{word}").as_str())
-    .set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
+  let res = client
+    .get(format!("https://dictionary.cambridge.org/dictionary/english/{word}").as_str())
     .call();
 
   let res = match res {
@@ -34,34 +37,28 @@ pub fn search_word(word: String) {
     }
   };
 
+  if res.status() == 302 {
+    eprintln!("No results found for: {word}");
+    return;
+  }
+
   let body = res
     .into_string()
     .expect("failed to convert the response into string (type)");
   let dom =
     tl::parse(&body, tl::ParserOptions::default()).expect("failed to parse the HTML response");
 
-  let meta_node = dom
-    .query_selector("meta[name=\"description\"]")
+  let desc_div_node = dom
+    .query_selector("div.def.ddef_d.db")
     .unwrap()
     .next()
     .unwrap();
-  let meta_node = meta_node.get(dom.parser()).unwrap();
-  let meta_elm = meta_node.as_tag().unwrap();
-  let desc_bytes = meta_elm.attributes().get("content").unwrap().unwrap();
-  let desc_text = desc_bytes.try_as_utf8_str().unwrap();
-  let mut desc_split: Vec<_> = desc_text.split(".").collect();
-
-  // Remove the Text at the beginner of the string
-  desc_split.remove(0);
-  desc_split.remove(desc_split.len() - 1);
-  desc_split.remove(desc_split.len() - 1);
-
-  for text in desc_split.iter() {
-    let parts: Box<[_]> = text.split(":").collect();
-    let mut desc = parts[0];
-    desc = desc.trim_end_matches("&hellip;");
-    println!("• {}", desc.trim_ascii());
-  }
+  let desc_div_tag = desc_div_node.get(dom.parser()).unwrap().as_tag().unwrap();
+  let desc = desc_div_tag.inner_text(dom.parser());
+  let mut desc_chars = desc.trim().chars();
+  // Remove the last character ":"
+  desc_chars.next_back();
+  println!("{}", desc_chars.as_str());
 
   println!("\nExamples:");
   let span_nodes = dom.query_selector("span.eg.deg").unwrap();
