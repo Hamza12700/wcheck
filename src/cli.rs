@@ -38,7 +38,26 @@ pub fn search_word(word: String) {
   };
 
   if res.status() == 302 {
-    eprintln!("No results found for: {word}");
+    let res = client
+      .get(format!("https://dictionary.cambridge.org/spellcheck/english/?q={word}").as_str())
+      .call()
+      .expect("failed to send request for spellchecker");
+    let html_string = res
+      .into_string()
+      .expect("failed to convert response into string");
+    let doc = tl::parse(html_string.as_str(), tl::ParserOptions::default())
+      .expect("failed to parse html response");
+
+    eprintln!("No results found for \"{word}\"");
+    println!("Similar spelling or pronunciations:");
+    let li_node = doc.query_selector("li.lbt.lp-5.lpl-20").unwrap();
+    for li in li_node {
+      let li_elm = li.get(doc.parser()).unwrap();
+      let li_tag = li_elm.as_tag().unwrap();
+      let text = li_tag.inner_text(doc.parser());
+      let suggestion = text.trim_ascii();
+      println!("• {suggestion}");
+    }
     return;
   }
 
