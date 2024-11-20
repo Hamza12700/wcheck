@@ -46,7 +46,7 @@ pub fn search_word(word: String) {
     .into_string()
     .expect("failed to convert the response into string (type)");
   let dom =
-    tl::parse(&body, tl::ParserOptions::default()).expect("failed to parse the HTML response");
+    tl::parse(&body, tl::ParserOptions::default().track_classes()).expect("failed to parse the HTML response");
 
   let desc_div_node = dom
     .query_selector("div.def.ddef_d.db")
