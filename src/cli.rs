@@ -120,7 +120,7 @@ pub fn find_word(word: String) {
   let json = res
     .into_string()
     .expect("failed to convert the response into string (type)");
-  let words: Vec<Word> =
+  let words: Box<[Word]> =
     serde_json::from_str(json.as_str()).expect("failed to deserialize json response");
   if words.is_empty() {
     println!("No results found");
