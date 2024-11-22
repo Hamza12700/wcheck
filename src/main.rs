@@ -15,8 +15,8 @@ struct Cli {
 fn main() {
   let args = Cli::parse();
   if args.search {
-    cli::find_word(args.word.replace(" ", "-"));
+    cli::find_word(args.word.replace(" ", "-").to_lowercase());
     return
   }
-  cli::search_word(args.word.replace(" ", "-"));
+  cli::search_word(args.word.replace(" ", "-").to_lowercase());
 }
