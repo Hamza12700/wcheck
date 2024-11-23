@@ -13,10 +13,15 @@ struct Cli {
 }
 
 fn main() {
-  let args = Cli::parse();
+  let mut args = Cli::parse();
+  let remove_chars = [" ", "'"];
+  for remove_char in remove_chars {
+    args.word = args.word.to_lowercase().replace(remove_char, "-");
+  }
+
   if args.search {
-    cli::find_word(args.word.replace(" ", "-").to_lowercase());
+    cli::find_word(args.word);
     return
   }
-  cli::search_word(args.word.replace(" ", "-").to_lowercase());
+  cli::search_word(args.word);
 }
