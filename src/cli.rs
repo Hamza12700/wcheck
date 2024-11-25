@@ -4,7 +4,7 @@ use serde::Deserialize;
 struct Word {
   #[serde(rename = "word")]
   name: String,
-  // url: String,
+  url: String,
 }
 
 pub fn search_word(word: String) {
@@ -55,8 +55,7 @@ pub fn search_word(word: String) {
       let li_elm = li.get(doc.parser()).unwrap();
       let li_tag = li_elm.as_tag().unwrap();
       let text = li_tag.inner_text(doc.parser());
-      let suggestion = text.trim_ascii();
-      println!("• {suggestion}");
+      println!("• {}", text.trim_ascii());
     }
     return;
   }
@@ -91,11 +90,17 @@ pub fn search_word(word: String) {
 }
 
 pub fn find_word(word: String) {
-  println!("Searching for words similar to: {word}");
+  let client = ureq::builder()
+    .user_agent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
+    .build();
 
-  let res =
-    ureq::get(format!("https://dictionary.cambridge.org/autocomplete/amp?dataset=english&q={word}").as_str())
-    .set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
+  println!("Searching for words similar to: {}", word.to_uppercase());
+
+  let res = client
+    .get(
+      format!("https://dictionary.cambridge.org/autocomplete/amp?dataset=english&q={word}")
+        .as_str(),
+    )
     .call();
 
   let res = match res {
@@ -126,9 +131,37 @@ pub fn find_word(word: String) {
     println!("No results found");
     return;
   }
-  println!("Found {} similar words", words.len());
 
-  for word in words {
+  let res = client
+    .get(format!("https://dictionary.cambridge.org{}", words[0].url).as_str())
+    .call()
+    .expect("failed to make a request");
+
+  let res_html = res
+    .into_string()
+    .expect("failed to convert response into string string");
+  let doc = tl::parse(res_html.as_str(), tl::ParserOptions::default()).unwrap();
+  let div_node_hanlder = doc
+    .query_selector("div.def.ddef_d.db")
+    .unwrap()
+    .next()
+    .unwrap();
+  let div_tag = div_node_hanlder
+    .get(doc.parser())
+    .unwrap()
+    .as_tag()
+    .unwrap();
+
+  println!(
+    "\n{} means: {}",
+    words[0].name.to_uppercase(),
+    div_tag.inner_text(doc.parser())
+  );
+
+  println!("Found {} similar words:", words.len());
+
+  for word in words.iter().skip(1) {
     println!("• {}", word.name)
   }
 }
+
