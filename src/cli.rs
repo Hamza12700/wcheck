@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use ureq::Agent;
 
 #[derive(Deserialize)]
 struct Word {
