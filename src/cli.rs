@@ -159,7 +159,7 @@ pub fn find_word(word: String) {
     div_tag.inner_text(doc.parser())
   );
 
-  println!("Found {} similar words:", words.len());
+  println!("Found {} similar words:", words.len() - 1);
 
   for word in words.iter().skip(1) {
     println!("• {}", word.name)
