@@ -144,14 +144,14 @@ pub fn find_word(word: String) {
   let doc = tl::parse(res_html.as_str(), tl::ParserOptions::default()).unwrap();
   let div_node_hanlder = doc
     .query_selector("div.def.ddef_d.db")
-    .unwrap()
+    .expect("failed to find the div element with this query-selector: 'div.def.ddef_d.db'")
     .next()
     .unwrap();
   let div_tag = div_node_hanlder
     .get(doc.parser())
-    .unwrap()
+    .expect("failed to get the Node for the query-selector 'div.def.ddef_d.db'")
     .as_tag()
-    .unwrap();
+    .expect("failed to get the HTML Tag for the query-selector 'div.def.ddef_d.db'");
 
   println!(
     "\n{} means: {}",
