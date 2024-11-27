@@ -10,6 +10,10 @@ struct Cli {
   /// Suggest similar words
   #[arg(short, long)]
   search: bool,
+
+  /// Download the pronunciation sound of the word
+  #[arg(short = 'd', long)]
+  sound: bool,
 }
 
 fn main() {
@@ -21,7 +25,7 @@ fn main() {
 
   if args.search {
     cli::find_word(args.word);
-    return
+    return;
   }
-  cli::search_word(args.word);
+  cli::search_word(args.word, args.sound);
 }

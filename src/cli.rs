@@ -1,4 +1,7 @@
+use std::{fs::File, process::Command};
+
 use serde::Deserialize;
+use tl::VDom;
 use ureq::Agent;
 
 #[derive(Deserialize)]
@@ -8,7 +11,7 @@ struct Word {
   url: String,
 }
 
-pub fn search_word(word: String) {
+pub fn search_word(word: String, with_sound: bool) {
   println!("Searching for the word: {}\n", word.to_uppercase());
   let client = ureq::builder()
     .redirects(0)
@@ -78,6 +81,10 @@ pub fn search_word(word: String) {
   // Remove the last character ":"
   desc_chars.next_back();
   println!("{}", desc_chars.as_str());
+
+  if with_sound {
+    play_audio(&dom, &client);
+  }
 
   println!("\nExamples:");
   let span_nodes = dom.query_selector("span.eg.deg").unwrap();
@@ -166,3 +173,52 @@ pub fn find_word(word: String) {
   }
 }
 
+fn play_audio(dom: &VDom, client: &Agent) {
+  let audio_node = dom
+    .query_selector("span.us.dpron-i")
+    .unwrap()
+    .next()
+    .expect("failed to get the span element with theses classes: 'us.dpron-i'");
+
+  let audio_tag = audio_node
+    .get(dom.parser())
+    .unwrap()
+    .as_tag()
+    .expect("failed to get the span element as HTML tag");
+
+  let audio_source_node = audio_tag
+    .query_selector(dom.parser(), "source[type=\"audio/mpeg\"]")
+    .unwrap()
+    .next()
+    .expect("failed to get source element");
+
+  let audio_source_elm = audio_source_node
+    .get(dom.parser())
+    .unwrap()
+    .as_tag()
+    .expect("failed to the source element as HTML tag");
+
+  let audio_source = audio_source_elm
+    .attributes()
+    .get("src")
+    .unwrap()
+    .unwrap()
+    .try_as_utf8_str()
+    .expect("the 'src' attribute of the source element is None");
+
+  let audio_link = format!("https://dictionary.cambridge.org{audio_source}");
+
+  let res = client
+    .get(audio_link.as_str())
+    .call()
+    .expect("failed to download audio file");
+
+  let mut audio_bytes = res.into_reader();
+  let mut file = File::create("/tmp/audiofile.mp3").expect("Failed to create file");
+  std::io::copy(&mut audio_bytes, &mut file).expect("Failed to write to file");
+  let mut player = Command::new("xdg-open")
+    .arg("/tmp/audiofile.mp3")
+    .spawn()
+    .expect("failed to play the sound");
+  let _ = player.wait();
+}
