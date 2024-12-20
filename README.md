@@ -4,7 +4,7 @@ Wcheck (word-check) is a command-line program to find and search the meaning of
 the words using [Cambridge Dictionary](https://dictionary.cambridge.org/). 
 
 # Features
-- Search a word for its definition and example usage
+- Search a word for its definition and examples
 - Find similar spelling or pronunciations words
 
 # Why
